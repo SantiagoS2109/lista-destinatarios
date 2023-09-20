@@ -1,6 +1,13 @@
 "use client";
 
-import { CircularProgress } from "@mui/material";
+import {
+  CircularProgress,
+  Button,
+  IconButton,
+  ThemeProvider,
+} from "@mui/material";
+import { Pagination, createTheme } from "@mui/material";
+import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { FilaTabla } from "./components/FilaTabla";
 import { HeaderTabla } from "./components/HeaderTabla";
@@ -50,9 +57,12 @@ export default function App() {
 
   const [filtroActivo, setFiltroActivo] = useState(false);
 
+  const [paginaActual, setPaginaActual] = useState(1);
+
   // Filtra la información según la campaña seleccionada
   function handleSeleccionFiltro(e) {
     setFiltroActivo(true);
+    setPaginaActual(1);
 
     const filtro = e.target.value;
     if (filtro === "todos") setFiltroActivo(false);
@@ -254,7 +264,10 @@ export default function App() {
               opcionesFiltro={opcionesFiltro}
               onHandleSeleccionFiltro={handleSeleccionFiltro}
             />
-            <Tabla />
+            <Tabla
+              paginaActual={paginaActual}
+              setPaginaActual={setPaginaActual}
+            />
 
             {showNewEntry && <ModalRegistro />}
 
@@ -277,8 +290,8 @@ export default function App() {
 
 function Layout({ children }) {
   return (
-    <div className={`flex justify-center static h-screen`}>
-      <div className="flex flex-col items-center justify-start w-[1200px]">
+    <div className={`flex justify-center static`}>
+      <div className="flex flex-col items-center justify-start w-[1200px] p-2">
         {children}
       </div>
     </div>
@@ -312,41 +325,24 @@ function OpcionFiltro({ value, opcion }) {
   return <option value={value}>{opcion}</option>;
 }
 
-function Tabla() {
+function Tabla({ paginaActual, setPaginaActual }) {
   const { filtroActivo, filtrarPropiedadesTabla, data, dataFiltrada } =
     useContext(FormContext);
 
-  const itemsPorPagina = 15;
-  const [paginaActual, setPaginaActual] = useState(1);
-  const totalPaginas = Math.ceil(data.length / itemsPorPagina);
+  const itemsPorPagina = 30;
+  const totalPaginas = filtroActivo
+    ? Math.ceil(dataFiltrada.length / itemsPorPagina)
+    : Math.ceil(data.length / itemsPorPagina);
 
   const startIndex = (paginaActual - 1) * itemsPorPagina;
-  // console.log(totalPaginas);
   const endIndex = startIndex + itemsPorPagina;
-  const dataActual = data.slice(startIndex, endIndex);
+  const dataActual = filtroActivo
+    ? dataFiltrada.slice(startIndex, endIndex)
+    : data.slice(startIndex, endIndex);
 
-  function handleCambioPagina(numeroPagina) {
-    setPaginaActual(numeroPagina);
-  }
-
-  function handlePaginaAnterior(paginaActual) {
-    if (paginaActual === 1) return;
-
-    const nuevaPagina = paginaActual - 1;
-    setPaginaActual(nuevaPagina);
-  }
-
-  function handlePaginaSiguiente(paginaActual) {
-    if (paginaActual === totalPaginas) return;
-
-    const nuevaPagina = paginaActual + 1;
-    setPaginaActual(nuevaPagina);
-  }
-
-  // const handleChangeRowsPerPage = (event) => {
-  //   setItemsPorPagina(parseInt(event.target.value, 10));
-  //   setPaginaActual(0);
-  // };
+  const handleCambioPagina = (event, value) => {
+    setPaginaActual(value);
+  };
 
   return (
     <>
@@ -367,107 +363,41 @@ function Tabla() {
               <FilaTabla key={el.uuid} filaData={el} />
             ))}
           {filtroActivo &&
-            filtrarPropiedadesTabla(dataFiltrada).map((el) => (
+            filtrarPropiedadesTabla(dataActual).map((el) => (
               <FilaTabla key={el.uuid} filaData={el} />
             ))}
         </tbody>
       </table>
-      {/* <TablePagination
-        // component="div"
-        count={totalPaginas}
-        page={paginaActual}
-        onPageChange={handleCambioPagina}
-        rowsPerPage={itemsPorPagina}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      /> */}
       <Paginacion
         paginaActual={paginaActual}
+        onHandleCambioPagina={handleCambioPagina}
         totalPaginas={totalPaginas}
-        onCambioPagina={handleCambioPagina}
-        onPaginaAnterior={handlePaginaAnterior}
-        onPaginaSiguiente={handlePaginaSiguiente}
       />
     </>
   );
 }
 
-function Paginacion({
-  paginaActual,
-  totalPaginas,
-  onCambioPagina,
-  onPaginaAnterior,
-  onPaginaSiguiente,
-}) {
-  Paginacion.propTypes = {
-    paginaActual: PropTypes.number,
-    totalPaginas: PropTypes.number,
-    onCambioPagina: PropTypes.func,
-    onPaginaAnterior: PropTypes.func,
-    onPaginaSiguiente: PropTypes.func,
-  };
-
-  const paginas = Array.from({ length: totalPaginas }, (_, index) => index + 1);
-
-  const deshabilitarAnterior = paginaActual === 1;
-  const deshabilitarSiguiente = paginaActual === totalPaginas;
+function Paginacion({ paginaActual, totalPaginas, onHandleCambioPagina }) {
+  const theme = createTheme({
+    palette: {
+      primary: {
+        main: "#1947a1",
+      },
+    },
+  });
 
   return (
-    <div className="flex self-end gap-4">
-      <button
-        onClick={() => onPaginaAnterior(paginaActual)}
-        className="rounded-md border border-royal-blue hover:bg-royal-blue text-white disabled:bg-gray-200 disabled:border-gray-400"
-        disabled={deshabilitarAnterior ? true : undefined}
-      >
-        <CaretLeft
-          className={`transition-all transition-300ms  ${
-            deshabilitarAnterior
-              ? "text-gray-400"
-              : "hover:text-white text-royal-blue"
-          }`}
-          size={24}
+    <div className="p-3">
+      <ThemeProvider theme={theme}>
+        <Pagination
+          count={totalPaginas}
+          color="primary"
+          showFirstButton
+          showLastButton
+          page={paginaActual}
+          onChange={onHandleCambioPagina}
         />
-      </button>
-      {paginaActual > 2 && (
-        <button
-        // className={`w-8 h-8 border border-royal-blue text-royal-blue rounded-md`}
-        >
-          ...
-        </button>
-      )}
-      {paginas
-        .filter(
-          (pagina) =>
-            pagina === paginaActual ||
-            pagina === paginaActual + 1 ||
-            pagina === paginaActual - 1
-        )
-        .map((pagina) => (
-          <button
-            className={`w-8 h-8 border border-royal-blue text-royal-blue rounded-md ${
-              paginaActual === pagina ? "bg-royal-blue text-white" : ""
-            }`}
-            key={pagina}
-            onClick={() => onCambioPagina(pagina)}
-          >
-            {pagina}
-          </button>
-        ))}
-      {paginaActual < totalPaginas - 1 && <button>...</button>}
-
-      <button
-        onClick={() => onPaginaSiguiente(paginaActual)}
-        className="rounded-md border border-royal-blue hover:bg-royal-blue text-white disabled:bg-gray-200 disabled:border-gray-400"
-        disabled={deshabilitarSiguiente ? true : undefined}
-      >
-        <CaretRight
-          className={`transition-all transition-300ms  ${
-            deshabilitarSiguiente
-              ? "text-gray-400"
-              : "hover:text-white text-royal-blue"
-          }`}
-          size={24}
-        />
-      </button>
+      </ThemeProvider>
     </div>
   );
 }
