@@ -2,6 +2,7 @@
 import { useContext, useState } from "react";
 import { FormContext } from "../page";
 // import PropTypes from "prop-types";
+import { Modal } from "@mui/material";
 
 import { FormInput } from "./FormInput";
 
@@ -138,8 +139,8 @@ export function ModalRegistro() {
   }
 
   return (
-    <div className="absolute h-screen w-screen backdrop-blur-sm backdrop-brightness-50 flex items-center justify-center">
-      <div className=" bg-white top-8 w-[700px] h-max  rounded-md p-6 shadow-xl transition-all">
+    <div className="absolute top-[13%] left-1/4">
+      <div className=" bg-white w-[700px] h-max rounded-md p-6 shadow-xl transition-all">
         <h1 className="text-center font-bold text-xl my-4">NUEVO REGISTRO</h1>
         <form id="newEntry" onSubmit={handleSubmit} action="nuevoRegistro">
           <div className="grid grid-cols-3 gap-x-8">
@@ -239,7 +240,7 @@ export function ModalRegistro() {
               }`}
               onClick={onHandleShowNewEntry}
             >
-              {!showNewEntry ? "Nueva Entrada" : "Cerrar"}
+              Cerrar
             </button>
 
             <button

@@ -6,7 +6,7 @@ import {
   IconButton,
   ThemeProvider,
 } from "@mui/material";
-import { Pagination, createTheme } from "@mui/material";
+import { Pagination, createTheme, Modal } from "@mui/material";
 import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { FilaTabla } from "./components/FilaTabla";
@@ -269,17 +269,27 @@ export default function App() {
               setPaginaActual={setPaginaActual}
             />
 
-            {showNewEntry && <ModalRegistro />}
+            {/* {showNewEntry && <ModalRegistro />} */}
+            {showNewEntry && (
+              <Modal open={showNewEntry} onClose={handleShowNewEntry}>
+                <ModalRegistro />
+              </Modal>
+            )}
 
             {filaSeleccionada && (
-              <ModalEdicion onClose={() => setFilaSeleccionada(null)} />
+              <Modal
+                open={filaSeleccionada}
+                onClose={() => setFilaSeleccionada(null)}
+              >
+                <ModalEdicion onClose={() => setFilaSeleccionada(null)} />
+              </Modal>
             )}
 
             <button
               className="bg-royal-blue text-white p-2 rounded-md font-medium mb-12"
               onClick={handleShowNewEntry}
             >
-              {!showNewEntry && "Nueva Entrada"}
+              Nueva Entrada
             </button>
           </>
         )}
@@ -291,7 +301,7 @@ export default function App() {
 function Layout({ children }) {
   return (
     <div className={`flex justify-center static`}>
-      <div className="flex flex-col items-center justify-start w-[1200px] p-2">
+      <div className="flex flex-col items-center justify-start w-[1200px]">
         {children}
       </div>
     </div>
